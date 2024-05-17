@@ -11,7 +11,7 @@
  */
 
 import { OrderStatus, Refund, TransactionBaseService } from "@medusajs/medusa"
-import { Order, OrderService } from "@medusajs/medusa"
+import { Order, OrderService, MoneyAmount, PriceList, ProductVariantMoneyAmount } from "@medusajs/medusa"
 import { DateResolutionType, calculateResolution, getTruncateFunction } from "./utils/dateTransformations"
 import { In } from "typeorm"
 import { getDecimalDigits } from "./utils/currency"
@@ -62,6 +62,22 @@ type SalesHistoryResult = {
   dateRangeToCompareTo?: number,
   current: SalesHistory[]
   previous: SalesHistory[]
+}
+
+type NetSale = {
+  date: Date,
+  total: string
+}
+
+type NetSalesResult = {
+  currencyCode: string,
+  currencyDecimalDigits: number,
+  dateRangeFrom?: number
+  dateRangeTo?: number,
+  dateRangeFromCompareTo?: number,
+  dateRangeToCompareTo?: number,
+  current: NetSale[]
+  previous: NetSale[]
 }
 
 type RefundsResult = {
@@ -166,6 +182,119 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         const groupedCurrentOrders = groupPerDate(currentOrders, resolution);
         const currentSales: SalesHistory[] = Object.values(groupedCurrentOrders);
     
+        return {
+          dateRangeFrom: startQueryFrom.getTime(),
+          dateRangeTo: to ? to.getTime() : new Date(Date.now()).getTime(),
+          dateRangeFromCompareTo: undefined,
+          dateRangeToCompareTo: undefined,
+          currencyCode: currencyCode,
+          currencyDecimalDigits: getDecimalDigits(currencyCode),
+          current: currentSales.sort((a, b) => a.date.getTime() - b.date.getTime()),
+          previous: []
+        }
+      }
+    }
+
+    return {
+      dateRangeFrom: undefined,
+      dateRangeTo: undefined,
+      dateRangeFromCompareTo: undefined,
+      dateRangeToCompareTo: undefined,
+      currencyCode: currencyCode,
+      currencyDecimalDigits: getDecimalDigits(currencyCode),
+      current: [],
+      previous: []
+    }
+  }
+
+  async getNetSales(orderStatuses: OrderStatus[], currencyCode: string, from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<NetSalesResult> {
+    let startQueryFrom: Date | undefined;
+    const orderStatusesAsStrings = Object.values(orderStatuses);
+    if (orderStatusesAsStrings.length) {
+      if (!dateRangeFromCompareTo) {
+        if (from) {
+          startQueryFrom = from;
+        } else {
+          // All time
+          const lastOrder = await this.activeManager_.getRepository(Order).find({
+            skip: 0,
+            take: 1,
+            order: { created_at: "ASC"},
+            where: { status: In(orderStatusesAsStrings) }
+          })
+
+          if (lastOrder.length > 0) {
+            startQueryFrom = lastOrder[0].created_at;
+          }
+        }
+      } else {
+          startQueryFrom = dateRangeFromCompareTo;
+      }
+
+      const orders = await this.orderService.list({
+        created_at: startQueryFrom ? { gte: startQueryFrom } : undefined,
+        currency_code: currencyCode,
+        status: In(orderStatusesAsStrings)
+      }, {
+        select: [
+          "id",
+          "total",
+          "created_at",
+          "updated_at"
+        ],
+        order: { created_at: "DESC" },
+      })
+
+      const priceListQuery = this.activeManager_.getRepository(PriceList)
+        .createQueryBuilder('priceList')
+        .where('priceList.name = :name', { name: "Product Cost" })
+        .leftJoinAndSelect('priceList.prices', 'prices')
+      const priceList = await priceListQuery.getOne();
+      const priceListPriceIdList = priceList.prices.map(price => price.id);
+
+      const productVariantMoneyAmountRepo = this.activeManager_.getRepository(ProductVariantMoneyAmount);
+      const productVariantMoneyAmount = await productVariantMoneyAmountRepo.find();
+
+      const moneyAmount = await this.activeManager_.getRepository(MoneyAmount).find()
+
+      const productCostList = productVariantMoneyAmount.filter(pvma => priceListPriceIdList.includes(pvma.money_amount_id))
+
+      for (let order of orders) {
+        for (let item of order.items) {
+          const variantPriceList = productCostList.find(price => price.variant_id == item.variant_id)
+          const price = priceList?.prices?.find(price => price.id == variantPriceList.money_amount_id);
+          if (price) {
+            const p = price.amount;
+            order.total -= p * item.quantity;
+          }
+        }
+      }
+
+      if (startQueryFrom) {
+        if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
+          const previousOrders = orders.filter(order => order.created_at < from);
+          const currentOrders = orders.filter(order => order.created_at >= from);
+          const resolution = calculateResolution(from);
+          const groupedCurrentOrders = groupPerDate(currentOrders, resolution);
+          const groupedPreviousOrders = groupPerDate(previousOrders, resolution);
+          const currentSales: SalesHistory[] = Object.values(groupedCurrentOrders);
+          const previousSales: SalesHistory[] = Object.values(groupedPreviousOrders);
+          return {
+            dateRangeFrom: from.getTime(),
+            dateRangeTo: to.getTime(),
+            dateRangeFromCompareTo: dateRangeFromCompareTo.getTime(),
+            dateRangeToCompareTo: dateRangeToCompareTo.getTime(),
+            currencyCode: currencyCode,
+            currencyDecimalDigits: getDecimalDigits(currencyCode),
+            current: currentSales.sort((a, b) => a.date.getTime() - b.date.getTime()),
+            previous: previousSales.sort((a, b) => a.date.getTime() - b.date.getTime())
+          }
+        }
+        const resolution = calculateResolution(startQueryFrom);
+        const currentOrders = orders;
+        const groupedCurrentOrders = groupPerDate(currentOrders, resolution);
+        const currentSales: SalesHistory[] = Object.values(groupedCurrentOrders);
+
         return {
           dateRangeFrom: startQueryFrom.getTime(),
           dateRangeTo: to ? to.getTime() : new Date(Date.now()).getTime(),

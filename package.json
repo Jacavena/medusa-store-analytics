@@ -1,14 +1,14 @@
 {
-  "name": "@rsc-labs/medusa-store-analytics",
+  "name": "@Jacavena/medusa-store-analytics-custom",
   "version": "0.12.1",
   "description": "Get analytics data about your store",
-  "author": "RSC Labs (https://rsoftcon.com)",
+  "author": "Jacavena",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RSC-Labs/medusa-store-analytics"
+    "url": "https://github.com/Jacavena/medusa-store-analytics"
   },
   "keywords": [
     "medusa-plugin",

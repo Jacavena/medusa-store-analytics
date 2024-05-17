@@ -11,8 +11,9 @@
  */
 
 import { Container } from "@medusajs/ui"
-import { 
+import {
   DiscountsTopCard,
+  NetSalesCard,
   SalesChannelPopularityCard,
   OrderStatus,
   DateRange,
@@ -28,6 +29,11 @@ const SalesTab = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabled}
         <Grid item xs={6} md={6} xl={6}>
           <Container>
             <SalesOverviewCard orderStatuses={orderStatuses} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
+          </Container>
+        </Grid>
+        <Grid item xs={6} md={6} xl={6}>
+          <Container>
+            <NetSalesCard orderStatuses={orderStatuses} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
           </Container>
         </Grid>
         <Grid item xs={6} md={6} xl={6}>

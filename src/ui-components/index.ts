@@ -19,6 +19,7 @@ export { SalesOverviewCard } from './sales/sales-overview-card'
 export { SalesChannelPopularityCard } from './sales/sales-channel-popularity-card'
 export { RefundsOverviewCard } from './sales/refunds/refunds-overview-card'
 export { RegionsPopularityCard } from './sales/regions-popularity-card'
+export { NetSalesCard } from './sales/net-sales-card'
 
 export { CustomersOverviewCard } from './customers/customers-overview-card'
 export { CustomersRepeatCustomerRate } from './customers/repeat-customer-rate/customers-repeat-customer-rate';

@@ -8,6 +8,8 @@
   Medusa store-analytics
 </h1>
 
+A fork of [@rsc-labs/medusa-store-analytics](https://medusajs.com/plugins/@rsc-labsmedusa-store-analytics/?hl=en-PH)
+
 Medusa "store-analytics" is a plugin which shows analytics data of your store, including orders, sales and other useful information.
 
 ### Why?
@@ -16,14 +18,14 @@ Knowledge about your store is crucial to take proper action to increase the sale
 
 ## Getting Started
 
-1. Install the package with `yarn add @rsc-labs/medusa-store-analytics` or `npm i @rsc-labs/medusa-store-analytics`.
+1. Install the package with `yarn add @Jacavena/medusa-store-analytics-custom` or `npm i @Jacavena/medusa-store-analytics-custom`.
 2. In `medusa-config.js`, add the plugin to the `plugins` array and set `enableUI`
 
 ```js
 const plugins = [
   // ... other plugins
   {
-    resolve: `@rsc-labs/medusa-store-analytics`,
+    resolve: `@Jacavena/medusa-store-analytics-custom`,
     options: {
       enableUI: true
     }

@@ -26,7 +26,8 @@ import {
   DateRange,
   RefundsOverviewCard,
   ProductsSoldCountCard,
-  CumulativeCustomersCard
+  CumulativeCustomersCard,
+  NetSalesCard
 } from '..';
 
 const OverviewTab = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabled} : 
@@ -42,6 +43,11 @@ const OverviewTab = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabl
       <Grid item xs={6} md={6} xl={6}>
         <Container>
           <SalesOverviewCard orderStatuses={orderStatuses} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
+        </Container>
+      </Grid>
+      <Grid item xs={6} md={6} xl={6}>
+        <Container>
+          <NetSalesCard orderStatuses={orderStatuses} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
         </Container>
       </Grid>
       <Grid item xs={6} md={6} xl={6}>

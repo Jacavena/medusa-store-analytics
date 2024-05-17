@@ -39,6 +39,19 @@ export const GET = async (
 
   try {
     switch (kind) {
+      case 'net-sales':
+        const netCurrencyCode = req.query.currencyCode;
+        if (netCurrencyCode as string) {
+          result = await salesAnalyticsService.getNetSales(
+            orderStatuses,
+            netCurrencyCode as string,
+            dateRangeFrom ? new Date(Number(dateRangeFrom)) : undefined,
+            dateRangeTo ? new Date(Number(dateRangeTo)) : undefined,
+            dateRangeFromCompareTo ? new Date(Number(dateRangeFromCompareTo)) : undefined,
+            dateRangeToCompareTo ? new Date(Number(dateRangeToCompareTo)) : undefined,
+          );
+        }
+        break;
       case 'history':
         const currencyCode = req.query.currencyCode;
         if (currencyCode as string) {
